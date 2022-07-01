@@ -1,0 +1,46 @@
+.App {
+  margin-top: 100px;
+}
+
+.note {
+  color: grey;
+  padding-top: 3px;
+  font-size: 15px;
+}
+
+.add {
+  position: absolute;
+  top: 0;
+  font-size: 40px;
+  text-align: center;
+  background-color: rgb(150, 255, 150);
+  display: block;
+  height: 50px;
+  width: 100%;
+  border: 1px solid black;
+}
+
+.remove {
+  position: absolute;
+  top: 0;
+  font-size: 40px;
+  text-align: center;
+  background-color: rgb(255, 150, 150);
+  display: block;
+  height: 50px;
+  width: 100%;
+  border: 1px solid black;
+
+}
+
+.update {
+  position: absolute;
+  top: 0;
+  font-size: 40px;
+  text-align: center;
+  background-color: rgb(150, 150, 255);
+  display: block;
+  height: 50px;
+  width: 100%;
+  border: 1px solid black;
+}
