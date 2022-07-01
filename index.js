@@ -27,15 +27,12 @@ let persons = [
 ]
 
 const express = require('express')
-const morgan = require('morgan')
 const app = express()
+const cors = require('cors')
 
-morgan.token('body', (request) => JSON.stringify(request.body))
-
+app.use(cors())
 app.use(express.json())
-app.use(morgan
-  (':method :url :status :res[content-length] - :response-time ms :body')
-)
+
 
 //handle root request
 app.get('/', (request, response) => {
@@ -74,7 +71,6 @@ app.delete('/api/persons/:id', (request, response) => {
 
   const id = Number(request.params.id)
   persons = persons.filter(person => person.id !== id)
-  console.log(persons)
 
   response.status(204).end()
 })
@@ -83,7 +79,6 @@ app.delete('/api/persons/:id', (request, response) => {
 app.post('/api/persons', (request, response) => {
 
   const body = request.body
-
   const duplicateName = persons.find(person => person.name === body.name)
 
   if (duplicateName) {
@@ -106,7 +101,7 @@ app.post('/api/persons', (request, response) => {
 })
 
 //assign port
-const PORT = 3001
+const PORT = process.env.PORT || 3001
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`)
 })
