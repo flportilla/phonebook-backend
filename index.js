@@ -28,10 +28,7 @@ let persons = [
 
 const express = require('express')
 const app = express()
-
 app.use(express.json())
-
-
 
 //handle root request
 app.get('/', (request, response) => {
