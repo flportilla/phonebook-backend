@@ -30,6 +30,7 @@ const express = require('express')
 const app = express()
 const cors = require('cors')
 
+app.use(express.static('build'))
 app.use(cors())
 app.use(express.json())
 
@@ -80,6 +81,7 @@ app.post('/api/persons', (request, response) => {
 
   const body = request.body
   const duplicateName = persons.find(person => person.name === body.name)
+  console.log(persons.find(person => person.name === body.name))
 
   if (duplicateName) {
     response.status(400).json({ error: 'name is already in contact list' })
