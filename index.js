@@ -29,6 +29,10 @@ let persons = [
 const express = require('express')
 const app = express()
 
+app.use(express.json())
+
+
+
 //handle root request
 app.get('/', (request, response) => {
   response.send('<div>Welcome</div>')
@@ -69,6 +73,32 @@ app.delete('/api/persons/:id', (request, response) => {
   console.log(persons)
 
   response.status(204).end()
+})
+
+//handle post request
+app.post('/api/persons', (request, response) => {
+
+  const body = request.body
+
+  const duplicateName = persons.find(person => person.name === body.name)
+
+  if (duplicateName) {
+    response.status(400).json({ error: 'name is already in contact list' })
+  }
+  else if (!body.number || !body.name) {
+    response.status(400).json({ error: 'number or name is missing, please add one' })
+  }
+  else {
+    const person = {
+      date: new Date(),
+      id: Date.now(),
+      name: body.name,
+      number: body.number
+    }
+    persons = persons.concat(person)
+    response.json(person)
+  }
+
 })
 
 //assign port
