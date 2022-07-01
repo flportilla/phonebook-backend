@@ -1,4 +1,4 @@
-const persons = [
+let persons = [
   {
     "id": 1,
     "name": "Arto Hellas",
@@ -18,15 +18,23 @@ const persons = [
     "id": 4,
     "name": "Mary Poppendieck",
     "number": "39-23-6423122"
+  },
+  {
+    "id": 5,
+    "name": "Mary Poppendieck",
+    "number": "39-23-6423122"
   }
 ]
 
 const express = require('express')
 const app = express()
 
+//handle root request
 app.get('/', (request, response) => {
   response.send('<div>Welcome</div>')
 })
+
+//handle /info request
 app.get('/info', (request, response) => {
   const info = `
     <h2>phonebook has info for ${persons.length} people</h2>
@@ -34,11 +42,15 @@ app.get('/info', (request, response) => {
     `
   response.send(info)
 })
+
+//handle /api/persons request
 app.get('/api/persons', (request, response) => {
   response.send(persons)
 })
 
+//handle /api/persons/:id request
 app.get('/api/persons/:id', (request, response) => {
+
   const id = Number(request.params.id)
   const person = persons.find(person => person.id === id)
   if (person) {
@@ -49,6 +61,17 @@ app.get('/api/persons/:id', (request, response) => {
   }
 })
 
+//handle delete by id request
+app.delete('/api/persons/:id', (request, response) => {
+
+  const id = Number(request.params.id)
+  persons = persons.filter(person => person.id !== id)
+  console.log(persons)
+
+  response.status(204).end()
+})
+
+//assign port
 const PORT = 3001
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`)
