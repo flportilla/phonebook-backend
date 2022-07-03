@@ -29,11 +29,36 @@ let persons = [
 const express = require('express')
 const app = express()
 const cors = require('cors')
+const mongoose = require('mongoose')
+
+const password = process.argv[2]
+const contactName = process.argv[3]
+const contactNumber = process.argv[4]
+
+const url = `mongodb+srv://flportilla:123@phonebookdb.ajsn5tf.mongodb.net/?retryWrites=true&w=majority`
+
+mongoose.connect(url)
+
+const personSchema = new mongoose.Schema({
+  name: String,
+  number: Number,
+  date: Date,
+})
+
+personSchema.set('toJSON', {
+  transform: (document, returnedObject) => {
+    returnedObject.id = returnedObject._id.toString()
+    delete returnedObject._id
+    delete returnedObject.__v
+  }
+})
+
+
+const Person = mongoose.model('Person', personSchema)
 
 app.use(express.static('build'))
 app.use(cors())
 app.use(express.json())
-
 
 //handle root request
 app.get('/', (request, response) => {
@@ -51,7 +76,9 @@ app.get('/info', (request, response) => {
 
 //handle /api/persons request
 app.get('/api/persons', (request, response) => {
-  response.send(persons)
+  Person.find({}).then(contact => {
+    response.json(contact)
+  })
 })
 
 //handle /api/persons/:id request
@@ -81,7 +108,6 @@ app.post('/api/persons', (request, response) => {
 
   const body = request.body
   const duplicateName = persons.find(person => person.name === body.name)
-  console.log(persons.find(person => person.name === body.name))
 
   if (duplicateName) {
     response.status(400).json({ error: 'name is already in contact list' })
