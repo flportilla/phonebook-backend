@@ -1,58 +1,29 @@
-let persons = [
-  {
-    "id": 1,
-    "name": "Arto Hellas",
-    "number": "040-123456"
-  },
-  {
-    "id": 2,
-    "name": "Ada Lovelace",
-    "number": "39-44-5323523"
-  },
-  {
-    "id": 3,
-    "name": "Dan Abramov",
-    "number": "12-43-234345"
-  },
-  {
-    "id": 4,
-    "name": "Mary Poppendieck",
-    "number": "39-23-6423122"
-  },
-  {
-    "id": 5,
-    "name": "Mary Poppendieck",
-    "number": "39-23-6423122"
-  }
-]
-
 const express = require('express')
 const app = express()
 const cors = require('cors')
 const mongoose = require('mongoose')
 
-const password = process.argv[2]
-const contactName = process.argv[3]
-const contactNumber = process.argv[4]
+const [, , password, contactName, contactNumber] = process.argv
 
 const url = `mongodb+srv://flportilla:123@phonebookdb.ajsn5tf.mongodb.net/?retryWrites=true&w=majority`
 
 mongoose.connect(url)
 
 const personSchema = new mongoose.Schema({
-  name: String,
-  number: Number,
+  name: {
+    type: String,
+    unique: true
+  },
+  number: String,
   date: Date,
 })
 
 personSchema.set('toJSON', {
   transform: (document, returnedObject) => {
-    returnedObject.id = returnedObject._id.toString()
-    delete returnedObject._id
-    delete returnedObject.__v
+    const { _id, __v, ...rest } = returnedObject
+    return { id: _id.toString(), ...rest }
   }
 })
-
 
 const Person = mongoose.model('Person', personSchema)
 
@@ -66,7 +37,9 @@ app.get('/', (request, response) => {
 })
 
 //handle /info request
-app.get('/info', (request, response) => {
+app.get('/info', async (request, response) => {
+
+  const persons = await Person.find({})
   const info = `
     <h2>phonebook has info for ${persons.length} people</h2>
     <h2>${new Date()}</h2>
@@ -75,57 +48,74 @@ app.get('/info', (request, response) => {
 })
 
 //handle /api/persons request
-app.get('/api/persons', (request, response) => {
-  Person.find({}).then(contact => {
-    response.json(contact)
-  })
+app.get('/api/persons', async (request, response) => {
+  const contacts = await Person.find({})
+  response.json(contacts)
 })
 
 //handle /api/persons/:id request
-app.get('/api/persons/:id', (request, response) => {
+app.get('/api/persons/:id', async (request, response) => {
 
-  const id = Number(request.params.id)
-  const person = persons.find(person => person.id === id)
-  if (person) {
-    response.send(person)
-  }
-  else {
-    response.status(404).end()
-  }
+  const id = request.params.id
+  await Person.findOne({ _id: id })
+    .catch(error => {
+      console.log(error)
+      response.status(400).end('error: malformatted id')
+    })
 })
 
 //handle delete by id request
-app.delete('/api/persons/:id', (request, response) => {
+app.delete('/api/persons/:id', async (request, response) => {
 
-  const id = Number(request.params.id)
-  persons = persons.filter(person => person.id !== id)
+  const id = request.params.id
+  await Person.findByIdAndRemove({ _id: id })
 
   response.status(204).end()
 })
 
 //handle post request
-app.post('/api/persons', (request, response) => {
+app.post('/api/persons', async (request, response) => {
 
   const body = request.body
-  const duplicateName = persons.find(person => person.name === body.name)
+  const name = body.name
 
-  if (duplicateName) {
-    response.status(400).json({ error: 'name is already in contact list' })
-  }
-  else if (!body.number || !body.name) {
+  if (!body.number || !body.name) {
     response.status(400).json({ error: 'number or name is missing, please add one' })
   }
   else {
-    const person = {
+    const person = new Person({
       date: new Date(),
       id: Date.now(),
       name: body.name,
       number: body.number
+    })
+    try {
+      await person.save()
+      response.json(person)
     }
-    persons = persons.concat(person)
-    response.json(person)
+    catch (error) {
+      response.status(400).json({ error: 'name is already in contact list' })
+    }
+  }
+})
+
+//handle put request
+app.put('/api/persons/:id', async (request, response) => {
+
+  const body = request.body
+  const id = request.params.id
+  const person = {
+    name: body.name,
+    number: body.number
   }
 
+  await Person.findByIdAndUpdate(id, person, { new: true })
+    .catch(error => {
+      console.log(error)
+      response.status(400).end('error: malformatted id')
+    }
+    )
+  response.json(person)
 })
 
 //assign port
