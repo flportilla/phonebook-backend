@@ -3,8 +3,6 @@ const app = express()
 const cors = require('cors')
 const mongoose = require('mongoose')
 
-const [, , password, contactName, contactNumber] = process.argv
-
 const url = `mongodb+srv://flportilla:123@phonebookdb.ajsn5tf.mongodb.net/?retryWrites=true&w=majority`
 
 mongoose.connect(url)
@@ -12,10 +10,15 @@ mongoose.connect(url)
 const personSchema = new mongoose.Schema({
   name: {
     type: String,
-    unique: true
+    unique: true,
+    require: true
   },
-  number: String,
+  number: {
+    type: String,
+    require: true,
+  },
   date: Date,
+
 })
 
 personSchema.set('toJSON', {
@@ -77,7 +80,6 @@ app.delete('/api/persons/:id', async (request, response) => {
 app.post('/api/persons', async (request, response) => {
 
   const body = request.body
-  const name = body.name
 
   if (!body.number || !body.name) {
     response.status(400).json({ error: 'number or name is missing, please add one' })
